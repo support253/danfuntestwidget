@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Danfun Chat Widget (TEST)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary: #0066cc;
+            --primary-light: #3388ff;
+            --accent: #ff6600;
+            --bg: #ffffff;
+            --text: #333333;
+            --gray: #666666;
+            --light-bg: #f9f9f9;
+            --border: rgba(0, 102, 204, 0.1);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            height: 100vh;
+            overflow: hidden;
+            pointer-events: auto;
+        }
+
+        #chat-widget-container {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 380px;
+            max-width: calc(100vw - 40px);
+            height: 620px;
+            max-height: calc(100vh - 120px);
+            background: var(--bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 102, 204, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 2147483647;
+            border: 1px solid var(--border);
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        @media (max-width: 480px) {
+            body { display: flex; align-items: center; justify-content: center; }
+            #chat-widget-container {
+                width: 100%; height: 100%; max-width: 100%; max-height: 100%;
+                bottom: 0; right: 0; left: 0; top: 0;
+                border-radius: 0; border: none; margin: 0;
+            }
+            #chat-widget-header { border-radius: 0 !important; padding: 16px !important; }
+            #chat-widget-logo { height: 44px !important; }
+            #chat-widget-title-main { font-size: 16px !important; }
+            #chat-widget-title-sub { font-size: 10px !important; }
+            #chat-widget-menu-btn, #chat-widget-close { width: 32px !important; height: 32px !important; font-size: 16px !important; }
+            #chat-widget-body { padding: 16px !important; gap: 12px !important; }
+            .message-bubble { font-size: 13px !important; padding: 10px 14px !important; }
+            .bot-avatar { width: 32px !important; height: 32px !important; }
+            .quick-question-btn { font-size: 12px !important; padding: 8px 12px !important; }
+            #chat-widget-footer { padding: 16px !important; }
+            #chat-widget-input { font-size: 14px !important; padding: 12px 60px 12px 16px !important; min-height: 46px !important; }
+            #chat-widget-send { width: 38px !important; height: 38px !important; }
+            #chat-widget-send svg { width: 18px !important; height: 18px !important; }
+            .season-banner { font-size: 12px !important; padding: 6px !important; }
+            #chat-widget-button { width: 56px; height: 56px; bottom: 16px; right: 16px; }
+            #chat-popup-message { right: 16px; bottom: 80px; max-width: 200px; white-space: normal; font-size: 10px; padding: 8px 10px; line-height: 1.3; }
+            #chat-widget-body { flex: 1; min-height: 0; overflow-y: auto; }
+            #chat-widget-footer { flex-shrink: 0; }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            #chat-widget-container {
+                width: calc(100vw - 32px); height: calc(100vh - 100px);
+                bottom: 90px; right: 16px;
+            }
+        }
+
+        #chat-widget-container.closing { animation: slideDown 0.3s ease-out forwards; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideDown { to { opacity: 0; transform: translateY(30px) scale(0.95); } }
+
+        #chat-widget-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white; padding: 24px;
+            border-radius: 24px 24px 0 0;
+            position: relative; overflow: hidden; flex-shrink: 0;
+        }
+
+        #chat-widget-header::before {
+            content: ''; position: absolute;
+            bottom: 10px; left: -80px;
+            width: 70px; height: 70px;
+            background: url('https://i.imgur.com/HJQSj0z.png') no-repeat center center;
+            background-size: contain;
+            filter: brightness(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            animation: blokartSailRightLeft 30s linear infinite;
+            opacity: 0.8;
+            transform: translateZ(0);
+            will-change: left, opacity, background-image;
+            backface-visibility: hidden;
+        }
+
+        @keyframes blokartSailRightLeft {
+            0% { left: -80px; bottom: 10px; opacity: 0; background-image: url('https://i.imgur.com/HJQSj0z.png'); }
+            2.5% { bottom: 10px; opacity: 0.8; }
+            47.5% { bottom: 10px; opacity: 0.8; background-image: url('https://i.imgur.com/HJQSj0z.png'); }
+            50% { left: calc(100% + 80px); bottom: 10px; opacity: 0; background-image: url('https://i.imgur.com/HJQSj0z.png'); }
+            50.1% { left: calc(100% + 80px); bottom: 10px; opacity: 0; background-image: url('https://i.imgur.com/dNGY2iP.png'); }
+            52.5% { bottom: 10px; opacity: 0.8; }
+            97.5% { bottom: 10px; opacity: 0.8; background-image: url('https://i.imgur.com/dNGY2iP.png'); }
+            100% { left: -80px; bottom: 10px; opacity: 0; background-image: url('https://i.imgur.com/dNGY2iP.png'); }
+        }
+
+        #chat-widget-header-content { display: flex; align-items: center; gap: 16px; position: relative; z-index: 1; }
+        #chat-widget-logo { height: 60px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
+        #chat-widget-title-main { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+        #chat-widget-title-sub { font-size: 12px; opacity: 0.9; font-weight: 500; }
+        #chat-widget-header-actions { position: absolute; right: 24px; top: 24px; display: flex; gap: 12px; z-index: 1; }
+        #chat-widget-menu-btn, #chat-widget-close { background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 50%; color: white; font-size: 18px; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        #chat-widget-menu-btn:hover, #chat-widget-close:hover { background: rgba(255,255,255,0.4); transform: scale(1.05); }
+        #chat-widget-close:hover { transform: rotate(90deg) scale(1.05); }
+
+        #chat-widget-dropdown { position: absolute; top: 70px; right: 24px; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 220px; overflow: hidden; display: none; flex-direction: column; z-index: 1000; }
+        #chat-widget-dropdown.show { display: flex; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .dropdown-item { padding: 14px 18px; font-size: 14.5px; cursor: pointer; transition: background 0.2s; color: var(--text); }
+        .dropdown-item:hover { background: var(--light-bg); }
+        .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+        .previous-chat-item { font-size: 13.5px; color: var(--gray); padding-left: 28px; position: relative; }
+        .previous-chat-item::before { content: '•'; position: absolute; left: 16px; color: var(--accent); }
+
+        #chat-widget-body { flex: 1; min-height: 0; padding: 20px; overflow-y: auto; background: linear-gradient(to bottom, #f9f9f9, #ffffff); display: flex; flex-direction: column; gap: 16px; }
+        .message-container { display: flex; gap: 12px; animation: fadeInUp 0.4s ease-out; max-width: 85%; align-self: flex-start; }
+        .message-container.user { align-self: flex-end; flex-direction: row-reverse; }
+        .message-container.user .message-bubble { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border-bottom-right-radius: 4px; }
+        .bot-avatar { width: 40px; height: 40px; border-radius: 50%; background: white; padding: 2px; flex-shrink: 0; position: relative; box-shadow: 0 2px 10px rgba(0,102,204,0.2); }
+        .bot-avatar::after { content: ''; position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background: #4ade80; border: 2px solid white; border-radius: 50%; }
+        .bot-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; }
+        .message-bubble { padding: 14px 18px; border-radius: 18px; font-size: 14.5px; line-height: 1.6; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--border); background: white; color: var(--text); border-left: 4px solid var(--accent); border-bottom-left-radius: 4px; }
+        .message-bubble h1, .message-bubble h2, .message-bubble h3 { margin: 16px 0 8px; font-weight: 700; color: var(--primary); }
+        .message-bubble ul, .message-bubble ol { margin: 12px 0 12px 20px; padding-left: 20px; }
+        .message-bubble li { margin-bottom: 8px; }
+        .message-bubble code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .message-bubble pre { background: #f1f5f9; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 12px 0; }
+        .message-bubble a { color: var(--accent); text-decoration: underline; }
+        .message-bubble strong { color: var(--primary); }
+        #chat-widget-footer { padding: 20px 24px 16px; background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0; }
+        .powered-by { text-align: center; font-size: 11px; color: var(--gray); margin-top: 12px; opacity: 0.7; }
+        .powered-by a { color: var(--primary); text-decoration: none; font-weight: 500; }
+        .powered-by a:hover { text-decoration: underline; }
+        .quick-questions-container { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; animation: fadeInUp 0.4s ease-out; }
+        .quick-questions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .quick-question-btn { padding: 10px 16px; background: white; border: 1px solid rgba(0, 102, 204, 0.2); border-radius: 20px; font-size: 13px; color: var(--text); cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .quick-question-btn:hover { background: var(--accent); color: white; border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3); }
+        .input-wrapper { position: relative; width: 100%; }
+        #chat-widget-input { width: 100%; min-height: 54px; max-height: 140px; padding: 14px 70px 14px 20px; border: 2px solid rgba(0,102,204,0.2); border-radius: 30px; outline: none; font-family: inherit; font-size: 15px; resize: none; background: var(--light-bg); transition: all 0.2s; box-sizing: border-box; }
+        #chat-widget-input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 4px rgba(255,102,0,0.12); }
+        #chat-widget-send { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,102,204,0.2); transition: all 0.2s; }
+        #chat-widget-send:hover { transform: translateY(-50%) scale(1.1); }
+        #chat-widget-send svg { width: 22px; height: 22px; fill: var(--accent); margin-left: 4px; }
+        #chat-widget-button { position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px; background: var(--primary); border-radius: 50%; box-shadow: 0 10px 30px rgba(0,102,204,0.4); cursor: pointer; z-index: 2147483648; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; justify-content: center; padding: 0; border: none; }
+        #chat-widget-button:hover { transform: scale(1.12) translateY(-6px); box-shadow: 0 16px 40px rgba(0,102,204,0.5); }
+        #chat-widget-button img { width: 70%; height: 70%; object-fit: contain; filter: brightness(0) invert(1); }
+        #chat-popup-message { position: fixed; bottom: 110px; right: 20px; background: white; color: var(--text); padding: 12px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 8px; z-index: 999; white-space: normal; max-width: 280px; line-height: 1.4; }
+        #chat-popup-message.visible { opacity: 1; transform: translateY(0); }
+        #chat-popup-message::after { content: ''; position: absolute; bottom: -10px; right: 30px; border: 12px solid transparent; border-top-color: white; }
+        #chat-popup-close { background: none; border: none; font-size: 20px; cursor: pointer; color: white; padding: 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .typing-indicator { display: flex; gap: 6px; padding: 16px 20px; background: white; border-radius: 18px; border-left: 4px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .typing-indicator span { width: 8px; height: 8px; background: #999; border-radius: 50%; animation: typing 1.4s infinite; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+        .quick-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .quick-buttons button { padding: 8px 16px; border-radius: 20px; background: var(--light-bg); border: 1px solid var(--accent); cursor: pointer; font-size: 14px; color: var(--primary); transition: background 0.2s; }
+        .quick-buttons button:hover { background: var(--accent); color: white; }
+        .season-banner { background: var(--accent); color: white; padding: 8px; text-align: center; font-size: 14px; border-radius: 8px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <button id="chat-widget-button" aria-label="Open Danfun Chat">
+        <img src="https://www-static.danfun.dk/wp-content/uploads/2025/04/Danfun-logo-blokart.png" alt="Danfun">
+    </button>
+    <div id="chat-popup-message" role="status" aria-live="polite">
+        <span>Ready for adventure? 💨</span>
+        <button id="chat-popup-close" aria-label="Close">✕</button>
+    </div>
+    <div id="chat-widget-container" role="dialog" aria-labelledby="chat-widget-title-main">
+        <div id="chat-widget-header">
+            <div id="chat-widget-header-content">
+                <img id="chat-widget-logo" src="https://www-static.danfun.dk/wp-content/uploads/2025/04/Danfun-logo-blokart.png" alt="Danfun">
+                <div>
+                    <div id="chat-widget-title-main">Danfun (TEST)</div>
+                    <div id="chat-widget-title-sub">Your beach & fun guide</div>
+                </div>
+            </div>
+            <div id="chat-widget-header-actions">
+                <button id="chat-widget-menu-btn" aria-label="Menu">☰</button>
+                <button id="chat-widget-close" aria-label="Close chat">✕</button>
+            </div>
+        </div>
+        <div id="chat-widget-dropdown">
+            <div class="dropdown-item" id="new-chat-option">🗨️ Start New Chat</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item"><strong>Previous Chats</strong></div>
+            <div id="previous-chats-list">
+                <div class="previous-chat-item">No previous chats yet</div>
+            </div>
+        </div>
+        <div id="chat-widget-body">
+            <div class="message-container">
+                <div class="bot-avatar">
+                    <img src="https://www-static.danfun.dk/wp-content/uploads/2025/04/Danfun-logo-blokart.png" alt="">
+                </div>
+                <div class="message-bubble">
+                    👋 Hi, I'm Danfun AI (TEST)! Your Fun Navigator.<br><br>
+                    Ask me about beaches, weather, or fun activities at Danfun in any language! 🌞
+                </div>
+            </div>
+            <div class="quick-questions-container">
+                <div class="quick-questions">
+                    <button class="quick-question-btn" onclick="sendQuickQuery('What are your opening hours?')">What are your opening hours?</button>
+                    <button class="quick-question-btn" onclick="sendQuickQuery('Where are you located?')">Where are you located?</button>
+                    <button class="quick-question-btn" onclick="sendQuickQuery('How can I contact you?')">How can I contact you?</button>
+                    <button class="quick-question-btn" onclick="sendQuickQuery('What do you offer?')">What do you offer?</button>
+                    <button class="quick-question-btn" onclick="sendQuickQuery('Can I book online?')">Can I book online?</button>
+                </div>
+            </div>
+        </div>
+        <div id="chat-widget-footer">
+            <div class="input-wrapper">
+                <textarea id="chat-widget-input" placeholder="Type your message..." rows="1" aria-label="Message input"></textarea>
+                <button id="chat-widget-send" aria-label="Send message">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="powered-by">
+                Powered by <a href="https://riverai.dk" target="_blank">RiverAI</a> — TEST sandbox
+            </div>
+        </div>
+    </div>
+    <audio id="sendSound" src="https://freesound.org/data/previews/58/58188_634170-lq.mp3" preload="auto"></audio>
+    <script>
+        // === N8N WEBHOOK URL (TEST sandbox) ===
+        window.ChatWidgetConfig = {
+            webhook: {
+                url: 'https://n8n.srv1183938.hstgr.cloud/webhook/7dd3febe-b17b-4b3f-9cc8-f074a4597849/chat'
+            }
+        };
+
+        const translations = {
+            en: { greeting: "Hey 👋<br>Would you like to book an activity today, see prices, or hear what suits you best?", popupMessage: "We're closed right now — but you can see prices and plan your visit here 👇", popupMessageOpen: "Ready for adventure? Ask me anything 💨", subtitle: "Your beach & fun guide (TEST)", newChat: "🗨️ Start New Chat", previousChats: "Previous Chats", noPreviousChats: "No previous chats yet", inputPlaceholder: "Type your message...", closedBanner: "Closed Now — Plan Ahead! 🌴", errorMessage: "Oops, something went wrong. Try again!", rateLimitMessage: "You have sent too many messages. Please try again later or call us at +45 23718083.", questions: ["See Prices", "Which activities suit us?", "Book online"] },
+            da: { greeting: "Hej 👋<br>Vil du booke en aktivitet i dag, se priser, eller høre hvad der passer bedst til jer?", popupMessage: "Vi er lukket lige nu — men du kan se priser og planlægge jeres besøg her 👇", popupMessageOpen: "Klar til eventyr? Spørg mig om alt 💨", subtitle: "Din strand & sjov guide (TEST)", newChat: "🗨️ Start Ny Chat", previousChats: "Tidligere Chats", noPreviousChats: "Ingen tidligere chats endnu", inputPlaceholder: "Skriv din besked...", closedBanner: "Lukket Nu — Planlæg Fremad! 🌴", errorMessage: "Ups, der opstod en fejl. Prøv igen!", rateLimitMessage: "Du har sendt for mange beskeder. Prøv igen senere, eller ring til os på +45 23718083.", questions: ["Se Priser", "Hvilke aktiviteter passer til os?", "Book online"] },
+            de: { greeting: "Hallo 👋<br>Möchten Sie heute eine Aktivität buchen, Preise sehen oder hören, was am besten zu Ihnen passt?", popupMessage: "Wir sind gerade geschlossen — aber Sie können Preise sehen und Ihren Besuch hier planen 👇", popupMessageOpen: "Bereit für ein Abenteuer? Fragen Sie mich alles 💨", subtitle: "Dein Strand & Spaß Guide (TEST)", newChat: "🗨️ Neuen Chat Starten", previousChats: "Frühere Chats", noPreviousChats: "Noch keine früheren Chats", inputPlaceholder: "Geben Sie Ihre Nachricht ein...", closedBanner: "Jetzt Geschlossen — Vorausplanen! 🌴", errorMessage: "Hoppla, etwas ist schief gelaufen. Versuchen Sie es nochmal!", rateLimitMessage: "Sie haben zu viele Nachrichten gesendet. Bitte versuchen Sie es später erneut oder rufen Sie uns an unter +45 23718083.", questions: ["Preise ansehen", "Welche Aktivitäten passen zu uns?", "Online buchen"] },
+            es: { greeting: "Hola 👋<br>¿Te gustaría reservar una actividad hoy, ver precios u oír qué se adapta mejor a ti?", popupMessage: "Estamos cerrados ahora — pero puedes ver precios y planificar tu visita aquí 👇", popupMessageOpen: "¿Listo para la aventura? Pregúntame lo que sea 💨", subtitle: "Tu guía de playa y diversión (TEST)", newChat: "🗨️ Iniciar Nuevo Chat", previousChats: "Chats Anteriores", noPreviousChats: "Aún no hay chats anteriores", inputPlaceholder: "Escribe tu mensaje...", closedBanner: "Cerrado Ahora — ¡Planifica Con Anticipación! 🌴", errorMessage: "¡Ups, algo salió mal. Intenta de nuevo!", rateLimitMessage: "Has enviado demasiados mensajes. Por favor, inténtalo más tarde o llámanos al +45 23718083.", questions: ["Ver Precios", "¿Qué actividades nos convienen?", "Reservar online"] },
+            fr: { greeting: "Salut 👋<br>Souhaitez-vous réserver une activité aujourd'hui, voir les prix ou savoir ce qui vous convient le mieux?", popupMessage: "Nous sommes fermés maintenant — mais vous pouvez voir les prix et planifier votre visite ici 👇", popupMessageOpen: "Prêt pour l'aventure ? Posez-moi vos questions 💨", subtitle: "Votre guide plage & fun (TEST)", newChat: "🗨️ Démarrer Nouveau Chat", previousChats: "Chats Précédents", noPreviousChats: "Pas encore de chats précédents", inputPlaceholder: "Tapez votre message...", closedBanner: "Fermé Maintenant — Planifiez À L'avance! 🌴", errorMessage: "Oups, quelque chose s'est mal passé. Réessayez!", rateLimitMessage: "Vous avez envoyé trop de messages. Veuillez réessayer plus tard ou appelez-nous au +45 23718083.", questions: ["Voir les Prix", "Quelles activités nous conviennent?", "Réserver en ligne"] },
+            nl: { greeting: "Hoi 👋<br>Wil je vandaag een activiteit boeken, prijzen zien of horen wat het beste bij jullie past?", popupMessage: "We zijn nu gesloten — maar je kunt prijzen zien en je bezoek hier plannen 👇", popupMessageOpen: "Klaar voor avontuur? Vraag me alles 💨", subtitle: "Jouw strand & plezier gids (TEST)", newChat: "🗨️ Start Nieuwe Chat", previousChats: "Vorige Chats", noPreviousChats: "Nog geen vorige chats", inputPlaceholder: "Typ je bericht...", closedBanner: "Nu Gesloten — Plan Vooruit! 🌴", errorMessage: "Oeps, er ging iets mis. Probeer opnieuw!", rateLimitMessage: "Je hebt te veel berichten verzonden. Probeer het later opnieuw of bel ons op +45 23718083.", questions: ["Prijzen bekijken", "Welke activiteiten passen bij ons?", "Online boeken"] }
+        };
+
+        function detectLanguage() {
+            const browserLang = navigator.language || navigator.userLanguage;
+            const langCode = browserLang.split('-')[0].toLowerCase();
+            return translations[langCode] ? langCode : 'en';
+        }
+        const userLanguage = detectLanguage();
+        const t = translations[userLanguage];
+        console.log('Danfun Widget (TEST): Detected language:', userLanguage);
+
+        function isOpenNow() {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Europe/Copenhagen',
+                month: 'numeric', hour: 'numeric', hour12: false
+            }).formatToParts(new Date());
+            const month = parseInt(parts.find(p => p.type === 'month').value, 10);
+            const hour = parseInt(parts.find(p => p.type === 'hour').value, 10);
+            return month >= 3 && month <= 11 && hour >= 9 && hour < 18;
+        }
+
+        const widget = document.getElementById('chat-widget-container');
+        const button = document.getElementById('chat-widget-button');
+        const popup = document.getElementById('chat-popup-message');
+        const menuBtn = document.getElementById('chat-widget-menu-btn');
+        const dropdown = document.getElementById('chat-widget-dropdown');
+        const newChatOption = document.getElementById('new-chat-option');
+        const previousChatsList = document.getElementById('previous-chats-list');
+        const closeBtn = document.getElementById('chat-widget-close');
+        const sendBtn = document.getElementById('chat-widget-send');
+        const input = document.getElementById('chat-widget-input');
+        const body = document.getElementById('chat-widget-body');
+        const sendSound = document.getElementById('sendSound');
+
+        let currentSessionId = null;
+        const RATE_LIMIT = 30;
+        let messageCount = parseInt(sessionStorage.getItem('danfunMsgCount') || '0');
+
+        function updateUILanguage() {
+            document.documentElement.lang = userLanguage;
+            document.querySelector('#chat-widget-title-sub').textContent = t.subtitle;
+            document.querySelector('#chat-popup-message span').textContent = isOpenNow() ? t.popupMessageOpen : t.popupMessage;
+            document.querySelector('#new-chat-option').textContent = t.newChat;
+            document.querySelector('#chat-widget-input').placeholder = t.inputPlaceholder;
+        }
+
+        function getCurrentSession() {
+            currentSessionId = sessionStorage.getItem('danfunCurrentChatId') ||
+                'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+            sessionStorage.setItem('danfunCurrentChatId', currentSessionId);
+            loadConversation(currentSessionId);
+            updatePreviousChatsList();
+        }
+
+        function loadConversation(sessionId) {
+            const saved = sessionStorage.getItem('danfunChat_' + sessionId);
+            body.innerHTML = '';
+            if (saved) { body.innerHTML = saved; } else { addWelcomeMessage(); }
+            body.scrollTop = 0;
+            checkSeason();
+        }
+
+        function saveConversation() {
+            if (currentSessionId) { sessionStorage.setItem('danfunChat_' + currentSessionId, body.innerHTML); }
+        }
+
+        function addWelcomeMessage() {
+            const welcome = document.createElement('div');
+            welcome.className = 'message-container';
+            welcome.innerHTML = `<div class="bot-avatar"><img src="https://www-static.danfun.dk/wp-content/uploads/2025/04/Danfun-logo-blokart.png" alt=""></div><div class="message-bubble">${t.greeting}</div>`;
+            body.appendChild(welcome);
+            const questionsContainer = document.createElement('div');
+            questionsContainer.className = 'quick-questions-container';
+            const questionsHTML = t.questions.map(q => `<button class="quick-question-btn" onclick="sendQuickQuery('${q}')">${q}</button>`).join('');
+            questionsContainer.innerHTML = `<div class="quick-questions">${questionsHTML}</div>`;
+            body.appendChild(questionsContainer);
+        }
+
+        function updatePreviousChatsList() {
+            previousChatsList.innerHTML = '';
+            const keys = Object.keys(sessionStorage).filter(k => k.startsWith('danfunChat_') && k !== 'danfunChat_' + currentSessionId);
+            if (keys.length === 0) {
+                previousChatsList.innerHTML = `<div class="previous-chat-item">${t.noPreviousChats}</div>`;
+                return;
+            }
+            keys.sort((a,b) => b.localeCompare(a));
+            keys.forEach(key => {
+                const sessionId = key.replace('danfunChat_', '');
+                const item = document.createElement('div');
+                item.className = 'previous-chat-item dropdown-item';
+                item.textContent = sessionId.substring(0, 12) + '...';
+                item.onclick = () => {
+                    currentSessionId = sessionId;
+                    sessionStorage.setItem('danfunCurrentChatId', currentSessionId);
+                    loadConversation(currentSessionId);
+                    dropdown.classList.remove('show');
+                    updatePreviousChatsList();
+                };
+                previousChatsList.appendChild(item);
+            });
+        }
+
+        input.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
+
+        button.onclick = () => {
+            widget.style.display = 'flex';
+            button.style.display = 'none';
+            popup.classList.remove('visible');
+            updateUILanguage();
+            getCurrentSession();
+            setTimeout(() => input.focus(), 300);
+            if (window.parent !== window) { window.parent.postMessage('danfun-widget-open', '*'); }
+        };
+
+        function closeWidget() {
+            saveConversation();
+            widget.classList.add('closing');
+            setTimeout(() => {
+                widget.style.display = 'none';
+                widget.classList.remove('closing');
+                button.style.display = 'flex';
+                setTimeout(() => popup.classList.add('visible'), 1500);
+                if (window.parent !== window) { window.parent.postMessage('danfun-widget-close', '*'); }
+            }, 300);
+        }
+        closeBtn.onclick = closeWidget;
+
+        menuBtn.onclick = (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); };
+        document.addEventListener('click', () => { dropdown.classList.remove('show'); });
+        dropdown.onclick = (e) => e.stopPropagation();
+
+        newChatOption.onclick = () => {
+            saveConversation();
+            currentSessionId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+            sessionStorage.setItem('danfunCurrentChatId', currentSessionId);
+            messageCount = 0;
+            sessionStorage.setItem('danfunMsgCount', '0');
+            body.innerHTML = '';
+            addWelcomeMessage();
+            updatePreviousChatsList();
+            dropdown.classList.remove('show');
+            input.focus();
+        };
+
+        document.getElementById('chat-popup-close').onclick = () => { popup.classList.remove('visible'); };
+        setTimeout(() => { popup.classList.add('visible'); }, 3000);
+
+        async function sendMessage() {
+            const msg = input.value.trim();
+            if (!msg) return;
+            messageCount++;
+            sessionStorage.setItem('danfunMsgCount', messageCount);
+            if (messageCount > RATE_LIMIT) {
+                input.value = ''; input.style.height = 'auto';
+                addMessage(t.rateLimitMessage, 'bot'); return;
+            }
+            addMessage(msg, 'user');
+            input.value = ''; input.style.height = 'auto';
+            sendSound.play();
+            const typing = document.createElement('div');
+            typing.className = 'message-container';
+            typing.innerHTML = `<div class="bot-avatar"><img src="https://www-static.danfun.dk/wp-content/uploads/2025/04/Danfun-logo-blokart.png" alt=""></div><div class="typing-indicator"><span></span><span></span><span></span></div>`;
+            body.appendChild(typing);
+            body.scrollTop = body.scrollHeight;
+            try {
+                const res = await fetch(window.ChatWidgetConfig.webhook.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: currentSessionId, chatInput: msg, language: userLanguage })
+                });
+                const data = await res.json();
+                body.removeChild(typing);
+                let text = data.output || t.greeting;
+                addMessage(text, 'bot');
+                saveConversation();
+            } catch (err) {
+                body.removeChild(typing);
+                addMessage(t.errorMessage, 'bot');
+            }
+        }
+
+        function sendQuickQuery(query) { input.value = query; sendMessage(); }
+
+        function checkSeason() {
+            const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Copenhagen', month: 'numeric' }).formatToParts(new Date());
+            const month = parseInt(parts.find(p => p.type === 'month').value, 10);
+            if (month < 3 || month > 11) {
+                if (!document.querySelector('.season-banner')) {
+                    const banner = document.createElement('div');
+                    banner.className = 'season-banner';
+                    banner.innerHTML = t.closedBanner;
+                    body.insertBefore(banner, body.firstChild);
+                }
+            }
+        }
+
+        function addMessage(text, type) {
+            const container = document.createElement('div');
+            container.className = `message-container ${type}`;
+            if (type === 'user') {
+                container.innerHTML = `<div class="message-bubble">${text}</div>`;
+            } else {
+                const htmlText = marked.parse(text, { breaks: true });
+                container.innerHTML = `<div class="bot-avatar"><img src="https://www-static.danfun.dk/wp-content/uploads/2025/04/Danfun-logo-blokart.png" alt=""></div><div class="message-bubble">${htmlText}</div>`;
+                container.querySelectorAll('a').forEach(link => { link.setAttribute('target', '_blank'); link.setAttribute('rel', 'noopener noreferrer'); });
+            }
+            body.appendChild(container);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+        sendBtn.onclick = sendMessage;
+        updateUILanguage();
+    </script>
+</body>
+</html>
