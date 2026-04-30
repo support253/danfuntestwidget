@@ -187,6 +187,33 @@
         .quick-buttons button { padding: 8px 16px; border-radius: 20px; background: var(--light-bg); border: 1px solid var(--accent); cursor: pointer; font-size: 14px; color: var(--primary); transition: background 0.2s; }
         .quick-buttons button:hover { background: var(--accent); color: white; }
         .season-banner { background: var(--accent); color: white; padding: 8px; text-align: center; font-size: 14px; border-radius: 8px; margin-bottom: 12px; }
+
+        /* Icon-led dropdown items */
+        .dropdown-item-icon { display: flex; align-items: center; gap: 12px; }
+        .dropdown-item-icon .di-icon { width: 18px; height: 18px; color: var(--primary); flex-shrink: 0; }
+        .dropdown-item-icon .di-label { flex: 1; font-size: 14.5px; }
+
+        /* Previous Chats panel */
+        #chat-history-panel { display: none; flex-direction: column; flex: 1; min-height: 0; background: var(--bg); }
+        #chat-history-panel.active { display: flex; animation: fadeIn 0.2s ease-out; }
+        #chat-widget-body.hidden, #chat-widget-footer.hidden { display: none; }
+
+        #chat-history-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg); }
+        #chat-history-back { background: rgba(0,102,204,0.08); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.18s ease; color: var(--primary); flex-shrink: 0; padding: 0; }
+        #chat-history-back:hover { background: rgba(0,102,204,0.16); transform: translateX(-2px); }
+        #chat-history-back svg { width: 18px; height: 18px; }
+        #chat-history-title { font-size: 17px; font-weight: 700; color: var(--primary); letter-spacing: -0.2px; }
+
+        #chat-history-list { flex: 1; min-height: 0; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: linear-gradient(to bottom, #f9f9f9, #ffffff); }
+        .history-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: white; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.16s ease; }
+        .history-item:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(255,102,0,0.15); }
+        .history-item-icon { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,102,204,0.18); }
+        .history-item-icon svg { width: 18px; height: 18px; color: white; }
+        .history-item-body { flex: 1; min-width: 0; }
+        .history-item-preview { font-size: 14px; color: var(--text); font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .history-item-time { font-size: 11.5px; color: var(--gray); margin-top: 4px; font-weight: 500; }
+        .history-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; color: var(--gray); font-size: 14px; text-align: center; }
+        .history-empty svg { width: 48px; height: 48px; opacity: 0.32; margin-bottom: 12px; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -212,11 +239,14 @@
             </div>
         </div>
         <div id="chat-widget-dropdown">
-            <div class="dropdown-item" id="new-chat-option">🗨️ Start New Chat</div>
+            <div class="dropdown-item dropdown-item-icon" id="new-chat-option">
+                <svg class="di-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span class="di-label">Start New Chat</span>
+            </div>
             <div class="dropdown-divider"></div>
-            <div class="dropdown-item"><strong>Previous Chats</strong></div>
-            <div id="previous-chats-list">
-                <div class="previous-chat-item">No previous chats yet</div>
+            <div class="dropdown-item dropdown-item-icon" id="view-history-option">
+                <svg class="di-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span class="di-label">Previous Chats</span>
             </div>
         </div>
         <div id="chat-widget-body">
@@ -252,6 +282,15 @@
                 Powered by <a href="https://riverai.dk" target="_blank">RiverAI</a> — TEST sandbox
             </div>
         </div>
+        <div id="chat-history-panel">
+            <div id="chat-history-header">
+                <button id="chat-history-back" aria-label="Back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div id="chat-history-title">Previous Chats</div>
+            </div>
+            <div id="chat-history-list"></div>
+        </div>
     </div>
     <audio id="sendSound" src="https://freesound.org/data/previews/58/58188_634170-lq.mp3" preload="auto"></audio>
     <script>
@@ -263,12 +302,12 @@
         };
 
         const translations = {
-            en: { greeting: "Hey 👋<br>Would you like to book an activity today, see prices, or hear what suits you best?", popupMessage: "We're closed right now — but you can see prices and plan your visit here 👇", popupMessageOpen: "Ready for adventure? Ask me anything 💨", subtitle: "Your beach & fun guide (TEST)", newChat: "🗨️ Start New Chat", previousChats: "Previous Chats", noPreviousChats: "No previous chats yet", inputPlaceholder: "Type your message...", closedBanner: "Closed Now — Plan Ahead! 🌴", errorMessage: "Oops, something went wrong. Try again!", rateLimitMessage: "You have sent too many messages. Please try again later or call us at +45 23718083.", questions: ["See Prices", "Which activities suit us?", "Book online"] },
-            da: { greeting: "Hej 👋<br>Vil du booke en aktivitet i dag, se priser, eller høre hvad der passer bedst til jer?", popupMessage: "Vi er lukket lige nu — men du kan se priser og planlægge jeres besøg her 👇", popupMessageOpen: "Klar til eventyr? Spørg mig om alt 💨", subtitle: "Din strand & sjov guide (TEST)", newChat: "🗨️ Start Ny Chat", previousChats: "Tidligere Chats", noPreviousChats: "Ingen tidligere chats endnu", inputPlaceholder: "Skriv din besked...", closedBanner: "Lukket Nu — Planlæg Fremad! 🌴", errorMessage: "Ups, der opstod en fejl. Prøv igen!", rateLimitMessage: "Du har sendt for mange beskeder. Prøv igen senere, eller ring til os på +45 23718083.", questions: ["Se Priser", "Hvilke aktiviteter passer til os?", "Book online"] },
-            de: { greeting: "Hallo 👋<br>Möchten Sie heute eine Aktivität buchen, Preise sehen oder hören, was am besten zu Ihnen passt?", popupMessage: "Wir sind gerade geschlossen — aber Sie können Preise sehen und Ihren Besuch hier planen 👇", popupMessageOpen: "Bereit für ein Abenteuer? Fragen Sie mich alles 💨", subtitle: "Dein Strand & Spaß Guide (TEST)", newChat: "🗨️ Neuen Chat Starten", previousChats: "Frühere Chats", noPreviousChats: "Noch keine früheren Chats", inputPlaceholder: "Geben Sie Ihre Nachricht ein...", closedBanner: "Jetzt Geschlossen — Vorausplanen! 🌴", errorMessage: "Hoppla, etwas ist schief gelaufen. Versuchen Sie es nochmal!", rateLimitMessage: "Sie haben zu viele Nachrichten gesendet. Bitte versuchen Sie es später erneut oder rufen Sie uns an unter +45 23718083.", questions: ["Preise ansehen", "Welche Aktivitäten passen zu uns?", "Online buchen"] },
-            es: { greeting: "Hola 👋<br>¿Te gustaría reservar una actividad hoy, ver precios u oír qué se adapta mejor a ti?", popupMessage: "Estamos cerrados ahora — pero puedes ver precios y planificar tu visita aquí 👇", popupMessageOpen: "¿Listo para la aventura? Pregúntame lo que sea 💨", subtitle: "Tu guía de playa y diversión (TEST)", newChat: "🗨️ Iniciar Nuevo Chat", previousChats: "Chats Anteriores", noPreviousChats: "Aún no hay chats anteriores", inputPlaceholder: "Escribe tu mensaje...", closedBanner: "Cerrado Ahora — ¡Planifica Con Anticipación! 🌴", errorMessage: "¡Ups, algo salió mal. Intenta de nuevo!", rateLimitMessage: "Has enviado demasiados mensajes. Por favor, inténtalo más tarde o llámanos al +45 23718083.", questions: ["Ver Precios", "¿Qué actividades nos convienen?", "Reservar online"] },
-            fr: { greeting: "Salut 👋<br>Souhaitez-vous réserver une activité aujourd'hui, voir les prix ou savoir ce qui vous convient le mieux?", popupMessage: "Nous sommes fermés maintenant — mais vous pouvez voir les prix et planifier votre visite ici 👇", popupMessageOpen: "Prêt pour l'aventure ? Posez-moi vos questions 💨", subtitle: "Votre guide plage & fun (TEST)", newChat: "🗨️ Démarrer Nouveau Chat", previousChats: "Chats Précédents", noPreviousChats: "Pas encore de chats précédents", inputPlaceholder: "Tapez votre message...", closedBanner: "Fermé Maintenant — Planifiez À L'avance! 🌴", errorMessage: "Oups, quelque chose s'est mal passé. Réessayez!", rateLimitMessage: "Vous avez envoyé trop de messages. Veuillez réessayer plus tard ou appelez-nous au +45 23718083.", questions: ["Voir les Prix", "Quelles activités nous conviennent?", "Réserver en ligne"] },
-            nl: { greeting: "Hoi 👋<br>Wil je vandaag een activiteit boeken, prijzen zien of horen wat het beste bij jullie past?", popupMessage: "We zijn nu gesloten — maar je kunt prijzen zien en je bezoek hier plannen 👇", popupMessageOpen: "Klaar voor avontuur? Vraag me alles 💨", subtitle: "Jouw strand & plezier gids (TEST)", newChat: "🗨️ Start Nieuwe Chat", previousChats: "Vorige Chats", noPreviousChats: "Nog geen vorige chats", inputPlaceholder: "Typ je bericht...", closedBanner: "Nu Gesloten — Plan Vooruit! 🌴", errorMessage: "Oeps, er ging iets mis. Probeer opnieuw!", rateLimitMessage: "Je hebt te veel berichten verzonden. Probeer het later opnieuw of bel ons op +45 23718083.", questions: ["Prijzen bekijken", "Welke activiteiten passen bij ons?", "Online boeken"] }
+            en: { greeting: "Hey 👋<br>Would you like to book an activity today, see prices, or hear what suits you best?", popupMessage: "We're closed right now — but you can see prices and plan your visit here 👇", popupMessageOpen: "Ready for adventure? Ask me anything 💨", subtitle: "Your beach & fun guide (TEST)", newChat: "Start New Chat", previousChats: "Previous Chats", noPreviousChats: "No previous chats yet", inputPlaceholder: "Type your message...", closedBanner: "Closed Now — Plan Ahead! 🌴", errorMessage: "Oops, something went wrong. Try again!", rateLimitMessage: "You have sent too many messages. Please try again later or call us at +45 23718083.", questions: ["See Prices", "Which activities suit us?", "Book online"] },
+            da: { greeting: "Hej 👋<br>Vil du booke en aktivitet i dag, se priser, eller høre hvad der passer bedst til jer?", popupMessage: "Vi er lukket lige nu — men du kan se priser og planlægge jeres besøg her 👇", popupMessageOpen: "Klar til eventyr? Spørg mig om alt 💨", subtitle: "Din strand & sjov guide (TEST)", newChat: "Start Ny Chat", previousChats: "Tidligere Chats", noPreviousChats: "Ingen tidligere chats endnu", inputPlaceholder: "Skriv din besked...", closedBanner: "Lukket Nu — Planlæg Fremad! 🌴", errorMessage: "Ups, der opstod en fejl. Prøv igen!", rateLimitMessage: "Du har sendt for mange beskeder. Prøv igen senere, eller ring til os på +45 23718083.", questions: ["Se Priser", "Hvilke aktiviteter passer til os?", "Book online"] },
+            de: { greeting: "Hallo 👋<br>Möchten Sie heute eine Aktivität buchen, Preise sehen oder hören, was am besten zu Ihnen passt?", popupMessage: "Wir sind gerade geschlossen — aber Sie können Preise sehen und Ihren Besuch hier planen 👇", popupMessageOpen: "Bereit für ein Abenteuer? Fragen Sie mich alles 💨", subtitle: "Dein Strand & Spaß Guide (TEST)", newChat: "Neuen Chat Starten", previousChats: "Frühere Chats", noPreviousChats: "Noch keine früheren Chats", inputPlaceholder: "Geben Sie Ihre Nachricht ein...", closedBanner: "Jetzt Geschlossen — Vorausplanen! 🌴", errorMessage: "Hoppla, etwas ist schief gelaufen. Versuchen Sie es nochmal!", rateLimitMessage: "Sie haben zu viele Nachrichten gesendet. Bitte versuchen Sie es später erneut oder rufen Sie uns an unter +45 23718083.", questions: ["Preise ansehen", "Welche Aktivitäten passen zu uns?", "Online buchen"] },
+            es: { greeting: "Hola 👋<br>¿Te gustaría reservar una actividad hoy, ver precios u oír qué se adapta mejor a ti?", popupMessage: "Estamos cerrados ahora — pero puedes ver precios y planificar tu visita aquí 👇", popupMessageOpen: "¿Listo para la aventura? Pregúntame lo que sea 💨", subtitle: "Tu guía de playa y diversión (TEST)", newChat: "Iniciar Nuevo Chat", previousChats: "Chats Anteriores", noPreviousChats: "Aún no hay chats anteriores", inputPlaceholder: "Escribe tu mensaje...", closedBanner: "Cerrado Ahora — ¡Planifica Con Anticipación! 🌴", errorMessage: "¡Ups, algo salió mal. Intenta de nuevo!", rateLimitMessage: "Has enviado demasiados mensajes. Por favor, inténtalo más tarde o llámanos al +45 23718083.", questions: ["Ver Precios", "¿Qué actividades nos convienen?", "Reservar online"] },
+            fr: { greeting: "Salut 👋<br>Souhaitez-vous réserver une activité aujourd'hui, voir les prix ou savoir ce qui vous convient le mieux?", popupMessage: "Nous sommes fermés maintenant — mais vous pouvez voir les prix et planifier votre visite ici 👇", popupMessageOpen: "Prêt pour l'aventure ? Posez-moi vos questions 💨", subtitle: "Votre guide plage & fun (TEST)", newChat: "Démarrer Nouveau Chat", previousChats: "Chats Précédents", noPreviousChats: "Pas encore de chats précédents", inputPlaceholder: "Tapez votre message...", closedBanner: "Fermé Maintenant — Planifiez À L'avance! 🌴", errorMessage: "Oups, quelque chose s'est mal passé. Réessayez!", rateLimitMessage: "Vous avez envoyé trop de messages. Veuillez réessayer plus tard ou appelez-nous au +45 23718083.", questions: ["Voir les Prix", "Quelles activités nous conviennent?", "Réserver en ligne"] },
+            nl: { greeting: "Hoi 👋<br>Wil je vandaag een activiteit boeken, prijzen zien of horen wat het beste bij jullie past?", popupMessage: "We zijn nu gesloten — maar je kunt prijzen zien en je bezoek hier plannen 👇", popupMessageOpen: "Klaar voor avontuur? Vraag me alles 💨", subtitle: "Jouw strand & plezier gids (TEST)", newChat: "Start Nieuwe Chat", previousChats: "Vorige Chats", noPreviousChats: "Nog geen vorige chats", inputPlaceholder: "Typ je bericht...", closedBanner: "Nu Gesloten — Plan Vooruit! 🌴", errorMessage: "Oeps, er ging iets mis. Probeer opnieuw!", rateLimitMessage: "Je hebt te veel berichten verzonden. Probeer het later opnieuw of bel ons op +45 23718083.", questions: ["Prijzen bekijken", "Welke activiteiten passen bij ons?", "Online boeken"] }
         };
 
         function detectLanguage() {
@@ -296,7 +335,11 @@
         const menuBtn = document.getElementById('chat-widget-menu-btn');
         const dropdown = document.getElementById('chat-widget-dropdown');
         const newChatOption = document.getElementById('new-chat-option');
-        const previousChatsList = document.getElementById('previous-chats-list');
+        const viewHistoryOption = document.getElementById('view-history-option');
+        const historyPanel = document.getElementById('chat-history-panel');
+        const historyList = document.getElementById('chat-history-list');
+        const historyBack = document.getElementById('chat-history-back');
+        const footerEl = document.getElementById('chat-widget-footer');
         const closeBtn = document.getElementById('chat-widget-close');
         const sendBtn = document.getElementById('chat-widget-send');
         const input = document.getElementById('chat-widget-input');
@@ -311,7 +354,9 @@
             document.documentElement.lang = userLanguage;
             document.querySelector('#chat-widget-title-sub').textContent = t.subtitle;
             document.querySelector('#chat-popup-message span').textContent = isOpenNow() ? t.popupMessageOpen : t.popupMessage;
-            document.querySelector('#new-chat-option').textContent = t.newChat;
+            document.querySelector('#new-chat-option .di-label').textContent = t.newChat;
+            document.querySelector('#view-history-option .di-label').textContent = t.previousChats;
+            document.querySelector('#chat-history-title').textContent = t.previousChats;
             document.querySelector('#chat-widget-input').placeholder = t.inputPlaceholder;
         }
 
@@ -320,7 +365,6 @@
                 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
             sessionStorage.setItem('danfunCurrentChatId', currentSessionId);
             loadConversation(currentSessionId);
-            updatePreviousChatsList();
         }
 
         function loadConversation(sessionId) {
@@ -347,28 +391,101 @@
             body.appendChild(questionsContainer);
         }
 
-        function updatePreviousChatsList() {
-            previousChatsList.innerHTML = '';
-            const keys = Object.keys(sessionStorage).filter(k => k.startsWith('danfunChat_') && k !== 'danfunChat_' + currentSessionId);
+        function escapeHtml(s) {
+            return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+        }
+
+        function getFirstUserMessage(key) {
+            const html = sessionStorage.getItem(key);
+            if (!html) return t.noPreviousChats;
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            const userBubble = tmp.querySelector('.message-container.user .message-bubble');
+            if (userBubble) {
+                const txt = userBubble.textContent.trim();
+                if (txt) return txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
+            }
+            // fall back to first bot bubble (welcome message)
+            const botBubble = tmp.querySelector('.message-container .message-bubble');
+            if (botBubble) {
+                const txt = botBubble.textContent.trim().replace(/\s+/g, ' ');
+                if (txt) return txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
+            }
+            return t.noPreviousChats;
+        }
+
+        function getRelativeTime(sessionId) {
+            const parts = sessionId.split('_');
+            const ts = parseInt(parts[1], 10);
+            if (!ts) return '';
+            try {
+                const rtf = new Intl.RelativeTimeFormat(userLanguage, { numeric: 'auto' });
+                const diffMs = ts - Date.now();
+                const minutes = Math.round(diffMs / 60000);
+                if (Math.abs(minutes) < 60) return rtf.format(minutes, 'minute');
+                const hours = Math.round(minutes / 60);
+                if (Math.abs(hours) < 24) return rtf.format(hours, 'hour');
+                const days = Math.round(hours / 24);
+                if (Math.abs(days) < 30) return rtf.format(days, 'day');
+                return new Date(ts).toLocaleDateString(userLanguage);
+            } catch (e) {
+                return new Date(ts).toLocaleDateString();
+            }
+        }
+
+        function renderHistoryList() {
+            historyList.innerHTML = '';
+            const keys = Object.keys(sessionStorage).filter(k => k.startsWith('danfunChat_'));
             if (keys.length === 0) {
-                previousChatsList.innerHTML = `<div class="previous-chat-item">${t.noPreviousChats}</div>`;
+                historyList.innerHTML = `
+                    <div class="history-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <div>${t.noPreviousChats}</div>
+                    </div>
+                `;
                 return;
             }
-            keys.sort((a,b) => b.localeCompare(a));
+            keys.sort((a, b) => {
+                const ta = parseInt((a.split('_')[2] || '0'), 10);
+                const tb = parseInt((b.split('_')[2] || '0'), 10);
+                return tb - ta;
+            });
             keys.forEach(key => {
                 const sessionId = key.replace('danfunChat_', '');
+                const preview = getFirstUserMessage(key);
+                const time = getRelativeTime(sessionId);
                 const item = document.createElement('div');
-                item.className = 'previous-chat-item dropdown-item';
-                item.textContent = sessionId.substring(0, 12) + '...';
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div class="history-item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    </div>
+                    <div class="history-item-body">
+                        <div class="history-item-preview">${escapeHtml(preview)}</div>
+                        <div class="history-item-time">${escapeHtml(time)}</div>
+                    </div>
+                `;
                 item.onclick = () => {
                     currentSessionId = sessionId;
                     sessionStorage.setItem('danfunCurrentChatId', currentSessionId);
                     loadConversation(currentSessionId);
-                    dropdown.classList.remove('show');
-                    updatePreviousChatsList();
+                    hideHistoryPanel();
                 };
-                previousChatsList.appendChild(item);
+                historyList.appendChild(item);
             });
+        }
+
+        function showHistoryPanel() {
+            renderHistoryList();
+            historyPanel.classList.add('active');
+            body.classList.add('hidden');
+            footerEl.classList.add('hidden');
+        }
+
+        function hideHistoryPanel() {
+            historyPanel.classList.remove('active');
+            body.classList.remove('hidden');
+            footerEl.classList.remove('hidden');
         }
 
         input.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
@@ -408,10 +525,17 @@
             sessionStorage.setItem('danfunMsgCount', '0');
             body.innerHTML = '';
             addWelcomeMessage();
-            updatePreviousChatsList();
             dropdown.classList.remove('show');
             input.focus();
         };
+
+        viewHistoryOption.onclick = (e) => {
+            e.stopPropagation();
+            dropdown.classList.remove('show');
+            showHistoryPanel();
+        };
+
+        historyBack.onclick = hideHistoryPanel;
 
         document.getElementById('chat-popup-close').onclick = () => { popup.classList.remove('visible'); };
         setTimeout(() => { popup.classList.add('visible'); }, 3000);
